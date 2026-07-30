@@ -9,5 +9,4 @@ public class PftApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(PftApplication.class, args);
 	}
-
 }
