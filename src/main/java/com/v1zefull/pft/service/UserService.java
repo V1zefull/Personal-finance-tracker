@@ -19,7 +19,7 @@ public class UserService {
     }
 
     //Entity -> Response
-    private UserResponse toResponse(User user){
+    public UserResponse toResponse(User user){
         return new UserResponse(user.getId(), user.getName(), user.getEmail());
     }
 
@@ -34,11 +34,15 @@ public class UserService {
         return toResponse(saved);
     }
 
-    public UserResponse getUserById(Long id){
-        User user = userRepository.findById(id).orElseThrow(
+    public UserResponse getUserById(Long id) {
+        User user = getUserEntityById(id);
+        return toResponse(user);
+    }
+
+    public User getUserEntityById(Long id){
+        return userRepository.findById(id).orElseThrow(
                 ()-> new ResourceNotFoundException("User not found with id: " + id)
         );
-        return toResponse(user);
     }
 
     public List<UserResponse> getAllUsers(){
