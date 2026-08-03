@@ -73,6 +73,19 @@ public class TransactionService {
                 .collect(Collectors.toList());
     }
 
+    public TransactionResponse updateTransaction(Long id, TransactionRequest request) {
+        Transaction transaction = getTransactionEntityById(id);
+
+        transaction.setAmount(request.getAmount());
+        transaction.setDate(request.getDate());
+        transaction.setDescription(request.getDescription());
+        transaction.setCategory(categoryService.getCategoryEntityById(request.getCategoryId()));
+        transaction.setUser(userService.getUserEntityById(request.getUserId()));
+
+        Transaction updated = transactionRepository.save(transaction);
+        return toResponse(updated);
+    }
+
     public void deleteTransaction(Long id){
         Transaction transaction = getTransactionEntityById(id);
         transactionRepository.deleteById(transaction.getId());

@@ -51,6 +51,15 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
+    public CategoryResponse updateCategory(Long id, CategoryRequest request) {
+        Category category = getCategoryEntityById(id);
+        category.setName(request.getName());
+        category.setType(request.getType());
+
+        Category updated = categoryRepository.save(category);
+        return toResponse(updated);
+    }
+
     public void deleteCategory(Long id){
         Category category = getCategoryEntityById(id);
         categoryRepository.deleteById(category.getId());
