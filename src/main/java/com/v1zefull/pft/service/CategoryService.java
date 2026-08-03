@@ -1,11 +1,14 @@
 package com.v1zefull.pft.service;
 
+import com.v1zefull.pft.dto.category.CategoryRequest;
+import com.v1zefull.pft.dto.category.CategoryResponse;
 import com.v1zefull.pft.entity.Category;
 import com.v1zefull.pft.exception.ResourceNotFoundException;
 import com.v1zefull.pft.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -15,22 +18,41 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
-    public Category createCategory(Category category){
-        return categoryRepository.save(category);
+    //Entity -> Response
+    public CategoryResponse toResponse(Category category){
+        return new CategoryResponse(category.getId(), category.getName(), category.getType());
     }
 
-    public Category getCategoryById(Long id){
-        return categoryRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("Category not found with id " + id)
-        );
+    //Request -> Entity
+    private Category toEntity(CategoryRequest request){
+        return new Category(request.getName(), request.getType());
     }
 
-    public List<Category> getAllCategories(){
-        return categoryRepository.findAll();
+    public CategoryResponse createCategory(CategoryRequest request){
+        Category category = toEntity(request);
+        Category saved = categoryRepository.save(category);
+        return toResponse(saved);
+    }
+
+    public CategoryResponse getCategoryById(Long id){
+        Category category = getCategoryEntityById(id);
+        return toResponse(category);
+    }
+
+    public Category getCategoryEntityById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
+    }
+
+    public List<CategoryResponse> getAllCategories(){
+        return categoryRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     public void deleteCategory(Long id){
-        Category category = getCategoryById(id);
+        Category category = getCategoryEntityById(id);
         categoryRepository.deleteById(category.getId());
     }
 }

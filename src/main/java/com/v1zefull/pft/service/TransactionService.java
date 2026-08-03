@@ -1,13 +1,15 @@
 package com.v1zefull.pft.service;
 
-import com.v1zefull.pft.entity.Category;
+import com.v1zefull.pft.dto.transaction.TransactionRequest;
+import com.v1zefull.pft.dto.transaction.TransactionResponse;
 import com.v1zefull.pft.entity.Transaction;
-import com.v1zefull.pft.entity.User;
 import com.v1zefull.pft.exception.ResourceNotFoundException;
+import com.v1zefull.pft.repository.CategoryRepository;
 import com.v1zefull.pft.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionService {
@@ -25,28 +27,54 @@ public class TransactionService {
         this.categoryService = categoryService;
     }
 
-    public Transaction createTransaction(Transaction transaction, Long userId, Long categoryId){
-        User user = userService.getUserById(userId);
-        Category category = categoryService.getCategoryById(categoryId);
-
-        transaction.setUser(user);
-        transaction.setCategory(category);
-
-        return transactionRepository.save(transaction);
-    }
-
-    public Transaction getTransactionById(Long id){
-        return transactionRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("Transaction not found with id " + id)
+    //Entity -> Response
+    private TransactionResponse toResponse(Transaction transaction){
+        return new TransactionResponse(
+                transaction.getId(),
+                transaction.getAmount(),
+                transaction.getDate(),
+                transaction.getDescription(),
+                categoryService.toResponse(transaction.getCategory()),
+                userService.toResponse(transaction.getUser())
         );
     }
 
-    public List<Transaction> getAllTransactionsByUserId(Long userId){
-        return transactionRepository.findByUserId(userId);
+    //Request -> Entity
+    private Transaction toEntity(TransactionRequest request){
+        return new Transaction(
+                request.getDate(),
+                request.getAmount(),
+                request.getDescription(),
+                categoryService.getCategoryEntityById(request.getCategoryId()),
+                userService.getUserEntityById(request.getUserId())
+        );
+    }
+
+
+    public TransactionResponse createTransaction(TransactionRequest request) {
+        Transaction saved = transactionRepository.save(toEntity(request));
+        return toResponse(saved);
+    }
+
+    public TransactionResponse getTransactionById(Long id){
+        Transaction transaction = getTransactionEntityById(id);
+        return toResponse(transaction);
+    }
+
+    public Transaction getTransactionEntityById(Long id) {
+        return transactionRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Transaction not found with id " + id)
+        );
+    }
+    public List<TransactionResponse> getAllTransactionsByUserId(Long userId){
+        return transactionRepository.findByUserId(userId)
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     public void deleteTransaction(Long id){
-        Transaction transaction = getTransactionById(id);
+        Transaction transaction = getTransactionEntityById(id);
         transactionRepository.deleteById(transaction.getId());
     }
 
