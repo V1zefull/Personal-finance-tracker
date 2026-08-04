@@ -52,10 +52,17 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    public UserResponse updateUser(Long id, UserRequest request){
+        User user = getUserEntityById(id);
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+
+        User updated = userRepository.save(user);
+        return toResponse(updated);
+    }
+
     public void deleteUser(Long id){
-        User user = userRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("User not found with id: " + id)
-        );
+        User user = getUserEntityById(id);
         userRepository.deleteById(user.getId());
     }
 }
