@@ -7,7 +7,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class TransactionRequest {
-    @NotNull
+    @NotNull(message = "Укажите сумму")
+    @Positive(message = "Сумма должна быть больше нуля")
     private BigDecimal amount;
 
     @NotNull
